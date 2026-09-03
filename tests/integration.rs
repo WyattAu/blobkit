@@ -138,12 +138,13 @@ async fn local_and_memory_same_trait_object() {
     }
 }
 
+#[cfg(not(feature = "s3"))]
 #[tokio::test]
 async fn s3_stub_returns_unsupported() {
     use blobkit::s3::{S3Config, S3Store};
     use blobkit::types::BucketName;
     let cfg = S3Config::new(BucketName::new("my-bucket").unwrap(), "us-east-1");
-    let store = S3Store::new(cfg);
+    let store = S3Store::new(cfg).await.unwrap();
     let key = ObjectKey::new("stub.txt").unwrap();
     let err = store.put(key.clone(), Bytes::from("hi")).await.unwrap_err();
     assert!(matches!(err, blobkit::error::BlobError::Unsupported(_)));

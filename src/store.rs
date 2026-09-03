@@ -3,13 +3,14 @@
 extern crate alloc;
 
 use alloc::boxed::Box;
-use alloc::string::String;
 use core::time::Duration;
 
 use async_trait::async_trait;
 use bytes::Bytes;
 
-use crate::error::{BlobError, Result};
+#[cfg(not(feature = "s3"))]
+use crate::error::BlobError;
+use crate::error::Result;
 use crate::types::{BlobId, ObjectKey};
 
 /// Unified async blob storage interface.

@@ -4,7 +4,7 @@
 
 //! # blobkit
 //!
-//! Unified blob storage for Rust — trait + Memory + Local + S3 stub.
+//! Unified blob storage for Rust — trait + Memory + Local + S3.
 //!
 //! Replaces `S3Client::from_conf` duplication across
 //! `archival-shim`, `backup-shim`, `kestrel-storage`, and `ferro` with a
@@ -35,13 +35,15 @@
 //! |---------|---------|---------|--------------|-------|
 //! | [`memory::MemoryStore`] | `memory` | No | Single-process | For tests |
 //! | [`local::LocalStore`] | `std` | Yes | Single-node | Atomic writes |
-//! | [`s3::S3Store`] | `s3` | Yes | Distributed | Stub in v0.1 |
+//! | [`s3::S3Store`] | `s3` | Yes | Distributed | aws-sdk-s3, path-style + custom endpoints |
 //!
 //! ## Features
 //!
 //! - `std` (default): enable `std::io` errors and filesystem backend.
 //! - `memory`: enable in-memory backend via `dashmap`.
-//! - `s3`: enable `S3Config` endpoint `Url` and presigned URL return type.
+//! - `s3`: enable the real S3 backend (`aws-sdk-s3` + `aws-config`) with
+//!   pre-signed URLs, path-style addressing, custom endpoints, and static
+//!   or chain-based credentials.
 //! - `typed-id`: enable `BlobId` backed by `uuid::Uuid`.
 //! - `sha2`: compute `sha256` in metadata.
 //! - `chrono`: attach `created_at` timestamps.

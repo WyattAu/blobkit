@@ -6,6 +6,7 @@
 extern crate alloc;
 
 use alloc::boxed::Box;
+#[cfg(not(feature = "s3"))]
 use alloc::string::String;
 use alloc::vec::Vec;
 use async_trait::async_trait;
