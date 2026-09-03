@@ -72,7 +72,9 @@ impl LocalStore {
     /// filesystem — a guard against OOM when callers accidentally attempt to
     /// store unbounded data.
     pub async fn with_limits(root: PathBuf, max_bytes: Option<u64>) -> Result<Self> {
-        tokio::fs::create_dir_all(&root).await.map_err(BlobError::from)?;
+        tokio::fs::create_dir_all(&root)
+            .await
+            .map_err(BlobError::from)?;
         let meta = tokio::fs::metadata(&root).await.map_err(BlobError::from)?;
         if !meta.is_dir() {
             return Err(BlobError::Other(
@@ -86,7 +88,10 @@ impl LocalStore {
     /// already ensured `root` exists (e.g. in tests that manage tempdirs).
     #[must_use]
     pub fn new_unchecked(root: PathBuf) -> Self {
-        Self { root, max_bytes: None }
+        Self {
+            root,
+            max_bytes: None,
+        }
     }
 
     /// Set or clear the maximum allowed object size.
@@ -252,9 +257,7 @@ pub struct LocalStore(());
 #[cfg(not(feature = "std"))]
 impl LocalStore {
     /// Always returns unsupported when `std` is disabled.
-    pub fn new_unchecked(
-        _root: alloc::string::String,
-    ) -> Self {
+    pub fn new_unchecked(_root: alloc::string::String) -> Self {
         Self(())
     }
 }
@@ -272,10 +275,7 @@ impl crate::store::BlobStore for LocalStore {
         ))
     }
 
-    async fn get(
-        &self,
-        _key: &crate::types::ObjectKey,
-    ) -> crate::error::Result<bytes::Bytes> {
+    async fn get(&self, _key: &crate::types::ObjectKey) -> crate::error::Result<bytes::Bytes> {
         Err(crate::error::BlobError::unsupported(
             "LocalStore requires std feature",
         ))

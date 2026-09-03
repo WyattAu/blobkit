@@ -75,7 +75,10 @@ async fn local_nested_keys() {
     let dir = tempfile::tempdir().unwrap();
     let store = LocalStore::new(dir.path().to_path_buf()).await.unwrap();
     let key = ObjectKey::new("a/b/c/d.bin").unwrap();
-    store.put(key.clone(), Bytes::from(vec![0u8; 1024])).await.unwrap();
+    store
+        .put(key.clone(), Bytes::from(vec![0u8; 1024]))
+        .await
+        .unwrap();
     assert!(store.exists(&key).await.unwrap());
     store.delete(&key).await.unwrap();
     assert!(!store.exists(&key).await.unwrap());
@@ -122,11 +125,8 @@ async fn local_and_memory_same_trait_object() {
     // Demonstrate that both backends can be used via `dyn BlobStore`.
     let mem: Box<dyn BlobStore> = Box::new(MemoryStore::new());
     let dir = tempfile::tempdir().unwrap();
-    let local: Box<dyn BlobStore> = Box::new(
-        LocalStore::new(dir.path().to_path_buf())
-            .await
-            .unwrap(),
-    );
+    let local: Box<dyn BlobStore> =
+        Box::new(LocalStore::new(dir.path().to_path_buf()).await.unwrap());
 
     for store in [&mem, &local] {
         let key = ObjectKey::new("dyn/test.txt").unwrap();
@@ -134,10 +134,7 @@ async fn local_and_memory_same_trait_object() {
             .put(key.clone(), Bytes::from("dyn hello"))
             .await
             .unwrap();
-        assert_eq!(
-            store.get(&key).await.unwrap(),
-            Bytes::from("dyn hello")
-        );
+        assert_eq!(store.get(&key).await.unwrap(), Bytes::from("dyn hello"));
     }
 }
 

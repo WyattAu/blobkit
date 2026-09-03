@@ -177,7 +177,8 @@ impl BlobStore for MemoryStore {
             let content_type = crate::types::guess_content_type(&key);
             #[cfg(feature = "sha2")]
             let meta = {
-                let mut m = BlobMetadata::new(key.clone(), size).with_content_type(content_type.clone());
+                let mut m =
+                    BlobMetadata::new(key.clone(), size).with_content_type(content_type.clone());
                 let digest = crate::types::compute_sha256(&data);
                 m.sha256 = Some(digest);
                 m
@@ -401,9 +402,7 @@ mod tests {
     async fn presigned_url_unsupported() {
         let store = MemoryStore::new();
         let key = ObjectKey::new("a.txt").unwrap();
-        let res = store
-            .presigned_url(&key, Duration::from_secs(60))
-            .await;
+        let res = store.presigned_url(&key, Duration::from_secs(60)).await;
         assert!(res.is_err());
     }
 }

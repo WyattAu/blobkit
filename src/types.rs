@@ -72,7 +72,9 @@ impl ObjectKey {
 
     fn validate(s: &str) -> Result<(), crate::error::BlobError> {
         if s.is_empty() {
-            return Err(crate::error::BlobError::invalid_key("key must not be empty"));
+            return Err(crate::error::BlobError::invalid_key(
+                "key must not be empty",
+            ));
         }
         if s.len() > Self::MAX_LEN {
             return Err(crate::error::BlobError::invalid_key(format!(
@@ -232,10 +234,8 @@ impl AsRef<str> for BucketName {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 pub struct BlobId(
-    #[cfg(feature = "typed-id")]
-    pub Uuid,
-    #[cfg(not(feature = "typed-id"))]
-    pub [u8; 16],
+    #[cfg(feature = "typed-id")] pub Uuid,
+    #[cfg(not(feature = "typed-id"))] pub [u8; 16],
 );
 
 impl BlobId {
@@ -324,14 +324,17 @@ impl FromStr for BlobId {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         #[cfg(feature = "typed-id")]
         {
-            let uuid = Uuid::parse_str(s)
-                .map_err(|e| crate::error::BlobError::invalid_key(format!("invalid BlobId: {e}")))?;
+            let uuid = Uuid::parse_str(s).map_err(|e| {
+                crate::error::BlobError::invalid_key(format!("invalid BlobId: {e}"))
+            })?;
             Ok(Self(uuid))
         }
         #[cfg(not(feature = "typed-id"))]
         {
             if s.len() != 32 {
-                return Err(crate::error::BlobError::invalid_key("invalid BlobId length"));
+                return Err(crate::error::BlobError::invalid_key(
+                    "invalid BlobId length",
+                ));
             }
             let mut bytes = [0u8; 16];
             for i in 0..16 {
