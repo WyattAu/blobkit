@@ -4,6 +4,29 @@ All notable changes to this project are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] — 2026-09-04
+
+### Fixed
+
+- Fixed the `no_std` build (`--no-default-features`): `S3Store`'s stub
+  `BlobStore` impl now imports `alloc::boxed::Box` (needed by the
+  `#[async_trait]` desugaring); removed unused/warned imports and
+  dead `Entry` in feature-off configurations.
+- `benches/blob_bench.rs` compiles again: criterion needs its `async`
+  feature (enabled via `async_tokio`) for `Bencher::to_async`.
+
+### Changed
+
+- Doc examples use `?` instead of `unwrap()` — zero `unwrap()` calls
+  remain outside `#[cfg(test)]` test modules.
+- Clippy clean under `-D warnings --all-targets` (derived `Default` for
+  `CredentialsMode`, removed useless `String` conversions).
+
+### Added
+
+- GitHub Actions CI: check (`--all-features`, `--no-default-features`,
+  `--features s3`), tests, clippy `-D warnings`, rustfmt.
+
 ## [0.2.0] — 2026-09-03
 
 ### Added

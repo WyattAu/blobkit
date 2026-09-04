@@ -40,6 +40,7 @@
 
 extern crate alloc;
 
+use alloc::boxed::Box;
 #[cfg(feature = "s3")]
 use alloc::format;
 use alloc::string::String;
@@ -60,10 +61,11 @@ use url::Url;
 /// chain (`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`, `AWS_PROFILE`,
 /// IMDS, ...). `Static` supplies explicit keys, e.g. for MinIO/LocalStack
 /// where no profile exists.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum CredentialsMode {
     /// Read credentials from the environment (`AWS_ACCESS_KEY_ID`,
     /// `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, container/IMDS).
+    #[default]
     FromEnv,
     /// Read credentials from the shared config/credentials files
     /// (`~/.aws/credentials`, `~/.aws/config`) via `AWS_PROFILE`.
@@ -76,12 +78,6 @@ pub enum CredentialsMode {
         /// Secret access key.
         secret_key: String,
     },
-}
-
-impl Default for CredentialsMode {
-    fn default() -> Self {
-        Self::FromEnv
-    }
 }
 
 /// Configuration for the S3 backend.

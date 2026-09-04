@@ -6,6 +6,7 @@
 extern crate alloc;
 
 use alloc::boxed::Box;
+#[cfg(feature = "std")]
 use alloc::string::String;
 use async_trait::async_trait;
 
@@ -41,8 +42,8 @@ use tracing::{debug, trace};
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), blobkit::error::BlobError> {
-/// let store = LocalStore::new(PathBuf::from("/tmp/blobs")).await.unwrap();
-/// let key = ObjectKey::new("hello.txt").unwrap();
+/// let store = LocalStore::new(PathBuf::from("/tmp/blobs")).await?;
+/// let key = ObjectKey::new("hello.txt")?;
 /// store.put(key.clone(), Bytes::from("hello")).await?;
 /// # Ok(())
 /// # }
@@ -77,9 +78,10 @@ impl LocalStore {
             .map_err(BlobError::from)?;
         let meta = tokio::fs::metadata(&root).await.map_err(BlobError::from)?;
         if !meta.is_dir() {
-            return Err(BlobError::Other(
-                format!("not a directory: {}", root.display()).into(),
-            ));
+            return Err(BlobError::Other(format!(
+                "not a directory: {}",
+                root.display()
+            )));
         }
         Ok(Self { root, max_bytes })
     }
@@ -155,17 +157,17 @@ impl BlobStore for LocalStore {
         let mut tmp = tempfile::Builder::new()
             .prefix(".blobkit-")
             .tempfile_in(parent)
-            .map_err(|e| BlobError::Other(format!("tempfile create: {e}").into()))?;
+            .map_err(|e| BlobError::Other(format!("tempfile create: {e}")))?;
 
         {
             use std::io::Write;
             tmp.write_all(&data)
-                .map_err(|e| BlobError::Other(format!("tempfile write: {e}").into()))?;
+                .map_err(|e| BlobError::Other(format!("tempfile write: {e}")))?;
             tmp.flush()
-                .map_err(|e| BlobError::Other(format!("tempfile flush: {e}").into()))?;
+                .map_err(|e| BlobError::Other(format!("tempfile flush: {e}")))?;
             tmp.as_file()
                 .sync_all()
-                .map_err(|e| BlobError::Other(format!("sync: {e}").into()))?;
+                .map_err(|e| BlobError::Other(format!("sync: {e}")))?;
         }
 
         tmp.persist(&dest).map_err(|e| BlobError::from(e.error))?;

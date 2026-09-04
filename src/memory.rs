@@ -39,7 +39,7 @@ use tracing::{debug, trace};
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), blobkit::error::BlobError> {
 /// let store = MemoryStore::new();
-/// let key = ObjectKey::new("hello.txt").unwrap();
+/// let key = ObjectKey::new("hello.txt")?;
 /// store.put(key.clone(), Bytes::from("hello")).await?;
 /// let data = store.get(&key).await?;
 /// assert_eq!(data, Bytes::from("hello"));
@@ -58,6 +58,7 @@ pub struct MemoryStore {
 
 /// Internal entry storing bytes plus metadata.
 #[derive(Debug, Clone)]
+#[cfg(feature = "std")]
 struct Entry {
     data: Bytes,
     meta: BlobMetadata,

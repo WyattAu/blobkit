@@ -1,6 +1,6 @@
 [package]
 name = "blobkit"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 rust-version = "1.85"
 description = "Unified blob storage — trait + Memory + Local + S3 (aws-sdk-s3). Replaces S3Client::from_conf duplication."
@@ -34,7 +34,7 @@ aws-smithy-runtime-api = { version = "1", optional = true }
 tempfile = "3"
 proptest = "1"
 tokio = { version = "1", features = ["full"] }
-criterion = { version = "0.5", features = ["html_reports"] }
+criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
 
 [features]
 default = ["std", "memory"]

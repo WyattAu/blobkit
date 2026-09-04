@@ -21,7 +21,7 @@
 //! # #[tokio::main]
 //! # async fn main() -> Result<(), blobkit::error::BlobError> {
 //! let store = MemoryStore::new();
-//! let key = ObjectKey::new("hello.txt").unwrap();
+//! let key = ObjectKey::new("hello.txt")?;
 //! store.put(key.clone(), Bytes::from("hello world")).await?;
 //! let data = store.get(&key).await?;
 //! assert_eq!(data, Bytes::from("hello world"));

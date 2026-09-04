@@ -27,7 +27,7 @@ use crate::types::{BlobId, ObjectKey};
 /// use bytes::Bytes;
 ///
 /// async fn example<S: BlobStore>(store: &S) -> Result<(), blobkit::error::BlobError> {
-///     let key = ObjectKey::new("hello.txt").unwrap();
+///     let key = ObjectKey::new("hello.txt")?;
 ///     let id = store.put(key.clone(), Bytes::from("hello world")).await?;
 ///     let data = store.get(&key).await?;
 ///     assert_eq!(data, Bytes::from("hello world"));
