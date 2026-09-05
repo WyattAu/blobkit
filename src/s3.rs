@@ -61,7 +61,7 @@ use url::Url;
 /// chain (`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`, `AWS_PROFILE`,
 /// IMDS, ...). `Static` supplies explicit keys, e.g. for MinIO/LocalStack
 /// where no profile exists.
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Clone, PartialEq, Eq, Default)]
 pub enum CredentialsMode {
     /// Read credentials from the environment (`AWS_ACCESS_KEY_ID`,
     /// `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, container/IMDS).
@@ -70,18 +70,35 @@ pub enum CredentialsMode {
     /// Read credentials from the shared config/credentials files
     /// (`~/.aws/credentials`, `~/.aws/config`) via `AWS_PROFILE`.
     FromProfile,
-    /// Static access/secret key pair (optionally add a session token via the
-    /// environment when using temporary credentials).
-    Static {
-        /// Access key ID.
-        access_key: String,
-        /// Secret access key.
-        secret_key: String,
-    },
+/// Static access/secret key pair (optionally add a session token via the
+/// environment when using temporary credentials).
+///
+/// `Debug` is manually implemented to redact the secret key
+/// (REQ-BLOBKIT-101: secrets never leak via diagnostics).
+Static {
+    /// Access key ID.
+    access_key: String,
+    /// Secret access key (redacted in [`Debug`](std::fmt::Debug)).
+    secret_key: String,
+},
+}
+
+impl std::fmt::Debug for CredentialsMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::FromEnv => f.debug_struct("CredentialsMode::FromEnv").finish(),
+            Self::FromProfile => f.debug_struct("CredentialsMode::FromProfile").finish(),
+            Self::Static { access_key, .. } => f
+                .debug_struct("CredentialsMode::Static")
+                .field("access_key", access_key)
+                .field("secret_key", &"[redacted]")
+                .finish(),
+        }
+    }
 }
 
 /// Configuration for the S3 backend.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct S3Config {
     /// Target bucket.
     pub bucket: BucketName,
@@ -102,6 +119,20 @@ pub struct S3Config {
     pub credentials_mode: CredentialsMode,
     /// Per-operation timeout applied to every S3 call. Defaults to 30s.
     pub timeout: Option<Duration>,
+}
+
+impl std::fmt::Debug for S3Config {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // REQ-BLOBKIT-101: credential material never reaches diagnostics.
+        f.debug_struct("S3Config")
+            .field("bucket", &self.bucket)
+            .field("region", &self.region)
+            .field("endpoint", &self.endpoint)
+            .field("path_style", &self.path_style)
+            .field("credentials_mode", &self.credentials_mode)
+            .field("timeout", &self.timeout)
+            .finish()
+    }
 }
 
 impl S3Config {
@@ -531,5 +562,39 @@ mod tests {
             .await
             .unwrap_err();
         assert!(matches!(err, BlobError::Unsupported(_)));
+    }
+}
+
+#[cfg(test)]
+mod redaction_tests {
+    use super::*;
+
+    // REQ-BLOBKIT-101: secret keys never appear in Debug output.
+    #[test]
+    fn credentials_mode_debug_redacts_secret() {
+        let mode = CredentialsMode::Static {
+            access_key: "AKIAIOSFODNN7EXAMPLE".to_string(),
+            secret_key: "super-secret-value".to_string(),
+        };
+        let dbg = format!("{mode:?}");
+        assert!(dbg.contains("[redacted]"), "secret leaked: {dbg}");
+        assert!(!dbg.contains("super-secret-value"), "secret leaked: {dbg}");
+    }
+
+    #[test]
+    fn s3_config_debug_has_no_secret_field() {
+        let cfg = S3Config {
+            bucket: BucketName::new("my-bucket".to_string()).expect("valid"),
+            region: "us-east-1".to_string(),
+            endpoint: None,
+            path_style: true,
+            credentials_mode: CredentialsMode::Static {
+                access_key: "AKIAIOSFODNN7EXAMPLE".to_string(),
+                secret_key: "super-secret-value".to_string(),
+            },
+            timeout: None,
+        };
+        let dbg = format!("{cfg:?}");
+        assert!(!dbg.contains("super-secret-value"), "secret leaked: {dbg}");
     }
 }
