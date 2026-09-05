@@ -60,3 +60,7 @@ let store = S3Store::new(cfg).await?;
 ## Features
 
 - `std` (default), `memory`, `s3`, `typed-id`, `sha2`, `chrono`, `serde`, `tracing`
+
+## Security
+
+Threat model: [THREAT-MODEL.md](THREAT-MODEL.md).
