@@ -186,7 +186,10 @@ impl BucketName {
             )));
         }
         let bytes = s.as_bytes();
-        if !bytes[0].is_ascii_alphanumeric() || !bytes[len - 1].is_ascii_alphanumeric() {
+        // len >= 3 is guaranteed by the check above, so first/last exist.
+        if bytes.first().is_some_and(|b| !b.is_ascii_alphanumeric())
+            || bytes.last().is_some_and(|b| !b.is_ascii_alphanumeric())
+        {
             return Err(crate::error::BlobError::invalid_key(
                 "bucket name must start and end with alphanumeric",
             ));
@@ -458,6 +461,15 @@ pub fn compute_sha256(_data: &[u8]) -> Option<String> {
 // Tests (unit)
 // ---------------------------------------------------------------------------
 
+// Tests exercise failure paths and invariants directly; unwrap/expect,
+// slicing, and panicking asserts are acceptable here — violations
+// surface as test failures, not production panics.
+#[allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::indexing_slicing,
+    clippy::panic
+)]
 #[cfg(test)]
 mod tests {
     use super::*;

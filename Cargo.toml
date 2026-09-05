@@ -50,3 +50,9 @@ tracing = ["dep:tracing"]
 [[bench]]
 name = "blob_bench"
 harness = false
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "warn"
+indexing_slicing = "deny"
+panic = "deny"

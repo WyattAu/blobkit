@@ -1,3 +1,12 @@
+// Tests exercise failure paths directly; unwrap/expect, slicing, and
+// panicking asserts are the test signal here.
+#![allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::indexing_slicing,
+    clippy::panic
+)]
+
 //! Integration tests exercising both backends through the unified `BlobStore` trait.
 
 use blobkit::local::LocalStore;

@@ -1,3 +1,12 @@
+// Tests exercise failure paths directly; unwrap/expect, slicing, and
+// panicking asserts are the test signal here.
+#![allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::indexing_slicing,
+    clippy::panic
+)]
+
 //! S3 integration tests.
 //!
 //! Builders and offline behavior run normally with `--features s3`:
