@@ -584,7 +584,8 @@ mod redaction_tests {
     #[test]
     fn s3_config_debug_has_no_secret_field() {
         let cfg = S3Config {
-            bucket: BucketName::new("my-bucket".to_string()).expect("valid"),
+            bucket: BucketName::new("my-bucket".to_string())
+                .expect("INVARIANT: 'my-bucket' is a valid S3 bucket name"),
             region: "us-east-1".to_string(),
             endpoint: None,
             path_style: true,
