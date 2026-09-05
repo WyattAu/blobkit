@@ -40,18 +40,27 @@ pub trait BlobStore: Send + Sync {
     ///
     /// Returns a [`BlobId`] that uniquely identifies this version of the
     /// object. The id is freshly generated on each `put` even when overwriting.
+    ///
+    /// # Requirements
+    /// REQ-BK-001, REQ-BK-003, REQ-BK-006
     async fn put(&self, key: ObjectKey, data: Bytes) -> Result<BlobId>;
 
     /// Retrieve the bytes at `key`.
     ///
     /// # Errors
     /// Returns [`BlobError::NotFound`] if the key does not exist.
+    ///
+    /// # Requirements
+    /// REQ-BK-001, REQ-BK-103
     async fn get(&self, key: &ObjectKey) -> Result<Bytes>;
 
     /// Delete the object at `key`.
     ///
     /// # Errors
     /// Returns [`BlobError::NotFound`] if the key does not exist.
+    ///
+    /// # Requirements
+    /// REQ-BK-002, REQ-BK-103
     async fn delete(&self, key: &ObjectKey) -> Result<()>;
 
     /// Returns `true` if `key` exists.

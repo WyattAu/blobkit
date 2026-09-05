@@ -160,3 +160,114 @@ async fn s3_stub_returns_unsupported() {
     let err = store.get(&key).await.unwrap_err();
     assert!(matches!(err, blobkit::error::BlobError::Unsupported(_)));
 }
+
+// ---------------------------------------------------------------------------
+// WS-8 gap tests (REQ-BK-003/005/006/103/105/200/202)
+// ---------------------------------------------------------------------------
+
+/// REQ-BK-006: memory `put` must record metadata whose `sha256` digest
+/// matches the stored bytes (content-integrity anchor).
+#[cfg(all(feature = "memory", feature = "std", feature = "sha2"))]
+#[tokio::test]
+async fn memory_put_records_matching_sha256_metadata() {
+    use blobkit::types::compute_sha256;
+
+    let store = MemoryStore::new();
+    let key = ObjectKey::new("integrity/digest.bin").unwrap();
+    let payload = Bytes::from_static(b"digest me please");
+    store.put(key.clone(), payload).await.unwrap();
+
+    let meta = store.metadata(&key).expect("metadata must be recorded");
+    assert_eq!(
+        meta.sha256.as_deref(),
+        Some(compute_sha256(b"digest me please").as_str())
+    );
+    assert_eq!(meta.size, 16);
+}
+
+/// REQ-BK-005: `compute_sha256` matches published SHA-256 vectors
+/// (FIPS 180-4 empty-string vector included).
+#[cfg(feature = "sha2")]
+#[test]
+fn compute_sha256_known_vector() {
+    use blobkit::types::compute_sha256;
+
+    assert_eq!(
+        compute_sha256(b""),
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    );
+    assert_eq!(
+        compute_sha256(b"abc"),
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    );
+}
+
+/// REQ-BK-103: deleting a missing key must return `Err`, never panic.
+#[cfg(feature = "memory")]
+#[tokio::test]
+async fn memory_delete_missing_key_is_err() {
+    let store = MemoryStore::new();
+    let key = ObjectKey::new("never/written.txt").unwrap();
+    let err = store.delete(&key).await.unwrap_err();
+    assert!(matches!(err, blobkit::error::BlobError::NotFound(_)));
+}
+
+/// REQ-BK-003 / REQ-BK-105: every `put` — including overwrites of identical
+/// content — must yield a fresh `BlobId`.
+#[cfg(feature = "memory")]
+#[tokio::test]
+async fn memory_fresh_blob_id_per_put() {
+    let store = MemoryStore::new();
+    let key = ObjectKey::new("ids/fresh.txt").unwrap();
+    let payload = Bytes::from("same content");
+
+    let id1 = store.put(key.clone(), payload.clone()).await.unwrap();
+    let id2 = store.put(key.clone(), payload).await.unwrap();
+    assert_ne!(id1, id2, "blob ids must never be reused");
+}
+
+/// REQ-BK-202: zero-byte payloads must round-trip intact.
+#[cfg(feature = "memory")]
+#[tokio::test]
+async fn memory_empty_payload_roundtrip() {
+    let store = MemoryStore::new();
+    let key = ObjectKey::new("empty/payload.bin").unwrap();
+    store.put(key.clone(), Bytes::new()).await.unwrap();
+    assert_eq!(store.get(&key).await.unwrap(), Bytes::new());
+
+    #[cfg(feature = "sha2")]
+    {
+        let meta = store.metadata(&key).unwrap();
+        assert_eq!(
+            meta.sha256.as_deref(),
+            Some("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+        );
+    }
+}
+
+/// REQ-BK-200: concurrent puts/gets through one shared `MemoryStore` handle
+/// must stay consistent — no lost writes, no torn reads.
+#[cfg(feature = "memory")]
+#[tokio::test]
+async fn memory_concurrent_put_get_consistency() {
+    use std::sync::Arc;
+
+    let store = Arc::new(MemoryStore::new());
+    let mut handles = Vec::new();
+
+    for i in 0..16u32 {
+        let store = Arc::clone(&store);
+        handles.push(tokio::spawn(async move {
+            let key = ObjectKey::new(format!("concurrent/key-{i}.txt")).unwrap();
+            let payload = Bytes::from(format!("payload-{i}"));
+            store.put(key.clone(), payload.clone()).await.unwrap();
+            // Own write visible; other writers' keys may or may not exist yet.
+            assert_eq!(store.get(&key).await.unwrap(), payload);
+            assert!(store.exists(&key).await.unwrap());
+        }));
+    }
+    for h in handles {
+        h.await.unwrap();
+    }
+    assert_eq!(store.len(), 16);
+}

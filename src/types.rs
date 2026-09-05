@@ -45,6 +45,9 @@ impl ObjectKey {
     ///
     /// # Errors
     /// Returns [`crate::error::BlobError::InvalidKey`] if validation fails.
+    ///
+    /// # Requirements
+    /// REQ-BK-100, REQ-BK-101
     pub fn new(key: impl Into<String>) -> Result<Self, crate::error::BlobError> {
         let s = key.into();
         Self::validate(&s)?;
@@ -160,6 +163,9 @@ pub struct BucketName(String);
 
 impl BucketName {
     /// Validate and construct.
+    ///
+    /// # Requirements
+    /// REQ-BK-102
     pub fn new(name: impl Into<String>) -> Result<Self, crate::error::BlobError> {
         let s = name.into();
         Self::validate(&s)?;
@@ -435,6 +441,9 @@ pub fn guess_content_type(key: &ObjectKey) -> String {
 }
 
 /// Compute hex-encoded SHA-256 of `data` when the `sha2` feature is enabled.
+///
+/// # Requirements
+/// REQ-BK-005
 #[cfg(feature = "sha2")]
 #[must_use]
 pub fn compute_sha256(data: &[u8]) -> String {
