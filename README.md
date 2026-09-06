@@ -60,6 +60,8 @@ let store = S3Store::new(cfg).await?;
 ## Features
 
 - `std` (default), `memory`, `s3`, `typed-id`, `sha2`, `chrono`, `serde`, `tracing`
+- `io-uring` (Linux only): `IoUringStore` — `LocalStore` variant using raw
+  io_uring SQEs for the bulk data path; see [PERF-SLO.md](PERF-SLO.md).
 
 ## Security
 

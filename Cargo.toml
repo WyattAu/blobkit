@@ -1,6 +1,6 @@
 [package]
 name = "blobkit"
-version = "0.2.2"
+version = "0.3.0"
 edition = "2021"
 rust-version = "1.85"
 description = "Unified blob storage — trait + Memory + Local + S3 (aws-sdk-s3). Replaces S3Client::from_conf duplication."
@@ -30,6 +30,9 @@ aws-config = { version = "1", optional = true, features = ["behavior-version-lat
 aws-smithy-types = { version = "1", optional = true }
 aws-smithy-runtime-api = { version = "1", optional = true }
 
+[target.'cfg(target_os = "linux")'.dependencies]
+io-uring = { version = "0.7", optional = true }
+
 [dev-dependencies]
 tempfile = "3"
 proptest = "1"
@@ -46,10 +49,16 @@ memory = ["dep:dashmap"]
 sha2 = ["dep:sha2"]
 typed-id = ["dep:uuid"]
 tracing = ["dep:tracing"]
+io-uring = ["dep:io-uring", "std"]
 
 [[bench]]
 name = "blob_bench"
 harness = false
+
+[[bench]]
+name = "io_uring_bench"
+harness = false
+required-features = ["io-uring"]
 
 [lints.clippy]
 unwrap_used = "deny"

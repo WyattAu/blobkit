@@ -6,6 +6,26 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-06
+
+### Added
+
+- **`IoUringStore`** (Linux, feature `io-uring`): a `LocalStore` variant whose
+  bulk data path uses raw io_uring SQEs — chunked, batched submit → wait →
+  reap with short read/write resubmission (`IoUringFile` primitive).
+  - Same on-disk layout, `max_bytes` guard, and atomic-write contract as
+    `LocalStore` (tempfile + `sync_all` + rename); `delete`/`exists`/
+    `presigned_url` delegate to plain syscalls where the ring adds nothing.
+  - Blocking ring sections run inside `spawn_blocking`; the raw
+    `IoUringFile` API stays synchronous (documented — intended for dedicated
+    I/O threads). One ring per file/op in this minimal version.
+  - `#![forbid(unsafe_code)]` is enforced on every configuration except the
+    backend itself, where each `unsafe` block documents its invariant.
+  - Roundtrip + parity tests vs `LocalStore`; criterion bench
+    (`benches/io_uring_bench.rs`) — io_uring ~1.4–1.6× faster than
+    `tokio::fs` for sequential 1 MiB reads/writes on the baseline host;
+    numbers and caveats in [PERF-SLO.md](PERF-SLO.md).
+
 ## [0.2.2] - 2026-09-05
 
 ### Security
