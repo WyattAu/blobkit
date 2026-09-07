@@ -70,17 +70,17 @@ pub enum CredentialsMode {
     /// Read credentials from the shared config/credentials files
     /// (`~/.aws/credentials`, `~/.aws/config`) via `AWS_PROFILE`.
     FromProfile,
-/// Static access/secret key pair (optionally add a session token via the
-/// environment when using temporary credentials).
-///
-/// `Debug` is manually implemented to redact the secret key
-/// (REQ-BLOBKIT-101: secrets never leak via diagnostics).
-Static {
-    /// Access key ID.
-    access_key: String,
-    /// Secret access key (redacted in [`Debug`](std::fmt::Debug)).
-    secret_key: String,
-},
+    /// Static access/secret key pair (optionally add a session token via the
+    /// environment when using temporary credentials).
+    ///
+    /// `Debug` is manually implemented to redact the secret key
+    /// (REQ-BLOBKIT-101: secrets never leak via diagnostics).
+    Static {
+        /// Access key ID.
+        access_key: String,
+        /// Secret access key (redacted in [`Debug`](std::fmt::Debug)).
+        secret_key: String,
+    },
 }
 
 impl std::fmt::Debug for CredentialsMode {
