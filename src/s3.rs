@@ -78,13 +78,13 @@ pub enum CredentialsMode {
     Static {
         /// Access key ID.
         access_key: String,
-        /// Secret access key (redacted in [`Debug`](std::fmt::Debug)).
+        /// Secret access key (redacted in [`Debug`](core::fmt::Debug)).
         secret_key: String,
     },
 }
 
-impl std::fmt::Debug for CredentialsMode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for CredentialsMode {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::FromEnv => f.debug_struct("CredentialsMode::FromEnv").finish(),
             Self::FromProfile => f.debug_struct("CredentialsMode::FromProfile").finish(),
@@ -121,8 +121,8 @@ pub struct S3Config {
     pub timeout: Option<Duration>,
 }
 
-impl std::fmt::Debug for S3Config {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for S3Config {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         // REQ-BLOBKIT-101: credential material never reaches diagnostics.
         f.debug_struct("S3Config")
             .field("bucket", &self.bucket)
