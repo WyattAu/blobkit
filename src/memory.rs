@@ -324,6 +324,42 @@ impl BlobStore for MemoryStore {
             "presigned_url is not supported for MemoryStore (enable `s3` feature for Url support)",
         ))
     }
+
+    async fn list(&self, prefix: &str) -> Result<alloc::vec::Vec<ObjectKey>> {
+        #[cfg(all(feature = "memory", feature = "std"))]
+        {
+            let mut keys: alloc::vec::Vec<ObjectKey> = self
+                .inner
+                .iter()
+                .map(|kv| kv.key().clone())
+                .filter(|k| k.as_str().starts_with(prefix))
+                .collect();
+            keys.sort();
+            Ok(keys)
+        }
+        #[cfg(all(not(feature = "memory"), feature = "std"))]
+        {
+            let mut keys: alloc::vec::Vec<ObjectKey> = self
+                .inner
+                .lock()
+                .map(|g: &std::collections::HashMap<ObjectKey, Entry>| {
+                    g.keys()
+                        .filter(|k| k.as_str().starts_with(prefix))
+                        .cloned()
+                        .collect::<alloc::vec::Vec<_>>()
+                })
+                .unwrap_or_default();
+            keys.sort();
+            Ok(keys)
+        }
+        #[cfg(not(feature = "std"))]
+        {
+            let _ = prefix;
+            Err(BlobError::unsupported(
+                "list is not supported for MemoryStore without std",
+            ))
+        }
+    }
 }
 
 // Tests exercise failure paths and invariants directly; unwrap/expect,
@@ -415,5 +451,26 @@ mod tests {
         let key = ObjectKey::new("a.txt").unwrap();
         let res = store.presigned_url(&key, Duration::from_secs(60)).await;
         assert!(res.is_err());
+    }
+
+    #[tokio::test]
+    async fn list_prefix_sorted() {
+        let store = MemoryStore::new();
+        for key in ["b/2.txt", "a/1.txt", "aa.txt", "c.txt"] {
+            store
+                .put(ObjectKey::new(key).unwrap(), Bytes::from("x"))
+                .await
+                .unwrap();
+        }
+        let all = store.list("").await.unwrap();
+        let as_strs: alloc::vec::Vec<&str> = all.iter().map(|k| k.as_str()).collect();
+        assert_eq!(
+            as_strs,
+            alloc::vec!["a/1.txt", "aa.txt", "b/2.txt", "c.txt"]
+        );
+        let under_a = store.list("a/").await.unwrap();
+        assert_eq!(under_a.len(), 1);
+        assert_eq!(under_a[0].as_str(), "a/1.txt");
+        assert!(store.list("zzz").await.unwrap().is_empty());
     }
 }

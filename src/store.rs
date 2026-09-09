@@ -3,12 +3,12 @@
 extern crate alloc;
 
 use alloc::boxed::Box;
+use alloc::vec::Vec;
 use core::time::Duration;
 
 use async_trait::async_trait;
 use bytes::Bytes;
 
-#[cfg(not(feature = "s3"))]
 use crate::error::BlobError;
 use crate::error::Result;
 use crate::types::{BlobId, ObjectKey};
@@ -66,6 +66,23 @@ pub trait BlobStore: Send + Sync {
     /// Returns `true` if `key` exists.
     async fn exists(&self, key: &ObjectKey) -> Result<bool>;
 
+    /// List all keys under `prefix`, in lexicographic order.
+    ///
+    /// The prefix is a raw string prefix (S3-style): `list("a/")` returns
+    /// keys under the `a/` "directory" only, while `list("a")` also matches
+    /// keys like `aa.txt`. An empty prefix lists every key in the store. No
+    /// delimiter semantics are applied — this is a flat listing, not a
+    /// "common prefixes" listing.
+    ///
+    /// # Errors
+    /// The default implementation returns [`BlobError::Unsupported`].
+    /// Backends override it when enumeration is available.
+    async fn list(&self, _prefix: &str) -> Result<Vec<ObjectKey>> {
+        Err(BlobError::unsupported(
+            "list is not supported by this backend",
+        ))
+    }
+
     /// Generate a pre-signed URL that can be used to download `key` without
     /// authentication. The URL should expire after `expires`.
     ///
@@ -111,6 +128,10 @@ where
 
     async fn exists(&self, key: &ObjectKey) -> Result<bool> {
         (**self).exists(key).await
+    }
+
+    async fn list(&self, prefix: &str) -> Result<Vec<ObjectKey>> {
+        (**self).list(prefix).await
     }
 
     #[cfg(feature = "s3")]

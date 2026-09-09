@@ -500,6 +500,13 @@ pub mod store {
             }
         }
 
+        async fn list(&self, prefix: &str) -> Result<alloc::vec::Vec<ObjectKey>> {
+            // Same on-disk layout as `LocalStore`; reuse its walker.
+            local::LocalStore::new_unchecked(self.root.clone())
+                .list(prefix)
+                .await
+        }
+
         #[cfg(feature = "s3")]
         async fn presigned_url(
             &self,

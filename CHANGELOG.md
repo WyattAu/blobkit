@@ -89,3 +89,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `S3Config` / `S3Store` stubs (`Unsupported` operations) for type-level
   migration.
 - Typed `ObjectKey`, `BucketName`, `BlobId` with validation.
+
+## [0.4.0] - 2026-09-08
+
+### Added
+- `object-store` feature: GCS + Azure backends via `object_store` facade
+- `BlobStore::list()` trait method with default `Unsupported` impl
+- `list()` implementations for LocalStore, MemoryStore, ObjectStoreBackend
+
+### Fixed
+- Azure `AccountKey` with empty account/key rejected at construction
+- `guess_content_type` gated on `mime_guess` feature (was always-on)

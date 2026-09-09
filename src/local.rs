@@ -220,6 +220,53 @@ impl BlobStore for LocalStore {
         }
     }
 
+    async fn list(&self, prefix: &str) -> Result<alloc::vec::Vec<ObjectKey>> {
+        // Walk root iteratively (stack, not recursion) with blocking
+        // `std::fs::read_dir`; local directory enumeration is cheap relative
+        // to network backends and avoids boxing a recursive future.
+        let mut out = alloc::vec::Vec::new();
+        let mut stack = alloc::vec![self.root.clone()];
+        while let Some(dir) = stack.pop() {
+            let entries = std::fs::read_dir(&dir).map_err(BlobError::from)?;
+            for entry in entries {
+                let entry = entry.map_err(BlobError::from)?;
+                let file_type = entry.file_type().map_err(BlobError::from)?;
+                let path = entry.path();
+                if file_type.is_dir() {
+                    // Descend only into directories that can still match the
+                    // prefix (cheap pruning for "directory"-style prefixes).
+                    let keep = match path.strip_prefix(&self.root) {
+                        Ok(relative) => {
+                            let dir_prefix = alloc::format!("{}/", relative.to_string_lossy());
+                            prefix.is_empty()
+                                || prefix.starts_with(&dir_prefix)
+                                || dir_prefix.starts_with(prefix)
+                        }
+                        Err(_) => false,
+                    };
+                    if keep {
+                        stack.push(path);
+                    }
+                    continue;
+                }
+                let Ok(relative) = path.strip_prefix(&self.root) else {
+                    continue;
+                };
+                let Some(relative) = relative.to_str() else {
+                    continue;
+                };
+                if !relative.starts_with(prefix) {
+                    continue;
+                }
+                if let Ok(key) = ObjectKey::new(relative) {
+                    out.push(key);
+                }
+            }
+        }
+        out.sort();
+        Ok(out)
+    }
+
     #[cfg(feature = "s3")]
     async fn presigned_url(&self, key: &ObjectKey, expires: Duration) -> Result<url::Url> {
         let path = self.resolve(key)?;
@@ -435,5 +482,35 @@ mod tests {
         assert!(url.to_string().contains("expires"));
         #[cfg(not(feature = "s3"))]
         assert!(url.contains("expires"));
+    }
+
+    #[tokio::test]
+    async fn list_prefix_sorted_and_complete() {
+        let (_dir, store) = temp_store().await;
+        for key in ["b/2.txt", "a/1.txt", "a/sub/3.txt", "c.txt", "aa.txt"] {
+            store
+                .put(ObjectKey::new(key).unwrap(), Bytes::from("x"))
+                .await
+                .unwrap();
+        }
+
+        let all = store.list("").await.unwrap();
+        let as_strs: alloc::vec::Vec<&str> = all.iter().map(|k| k.as_str()).collect();
+        assert_eq!(
+            as_strs,
+            alloc::vec!["a/1.txt", "a/sub/3.txt", "aa.txt", "b/2.txt", "c.txt"]
+        );
+
+        let under_a = store.list("a/").await.unwrap();
+        let as_strs: alloc::vec::Vec<&str> = under_a.iter().map(|k| k.as_str()).collect();
+        assert_eq!(as_strs, alloc::vec!["a/1.txt", "a/sub/3.txt"]);
+
+        // Raw string prefix without a delimiter also matches "aa.txt".
+        let raw_a = store.list("a").await.unwrap();
+        let as_strs: alloc::vec::Vec<&str> = raw_a.iter().map(|k| k.as_str()).collect();
+        assert_eq!(as_strs, alloc::vec!["a/1.txt", "a/sub/3.txt", "aa.txt"]);
+
+        // Missing prefix lists nothing (not an error).
+        assert!(store.list("zzz/").await.unwrap().is_empty());
     }
 }

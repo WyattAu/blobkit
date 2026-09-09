@@ -1,6 +1,6 @@
 [package]
 name = "blobkit"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 rust-version = "1.85"
 description = "Unified blob storage — trait + Memory + Local + S3 (aws-sdk-s3). Replaces S3Client::from_conf duplication."
@@ -33,6 +33,14 @@ aws-smithy-runtime-api = { version = "1", optional = true }
 [target.'cfg(target_os = "linux")'.dependencies]
 io-uring = { version = "0.7", optional = true }
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+object_store = { version = "0.14", optional = true, default-features = false, features = [
+    "gcp",
+    "azure",
+] }
+futures = { version = "0.3", optional = true }
+http = { version = "1", optional = true }
+
 [dev-dependencies]
 tempfile = "3"
 proptest = "1"
@@ -46,10 +54,12 @@ serde = ["dep:serde", "dep:serde_json"]
 chrono = ["dep:chrono"]
 s3 = ["dep:aws-sdk-s3", "dep:aws-config", "dep:aws-smithy-types", "dep:aws-smithy-runtime-api", "dep:url"]
 memory = ["dep:dashmap"]
+mime_guess = ["dep:mime_guess"]
 sha2 = ["dep:sha2"]
 typed-id = ["dep:uuid"]
 tracing = ["dep:tracing"]
 io-uring = ["dep:io-uring", "std"]
+object-store = ["std", "dep:object_store", "dep:futures", "dep:http"]
 
 [[bench]]
 name = "blob_bench"

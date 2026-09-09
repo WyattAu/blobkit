@@ -20,7 +20,10 @@ use blobkit::error::BlobError;
 use blobkit::local::LocalStore;
 use blobkit::memory::MemoryStore;
 use blobkit::store::BlobStore;
-use blobkit::types::{guess_content_type, BlobId, BlobMetadata, BucketName, ObjectKey};
+#[cfg(feature = "typed-id")]
+use blobkit::types::BlobId;
+use blobkit::types::{guess_content_type, BlobMetadata, BucketName, ObjectKey};
+#[cfg(feature = "s3")]
 use blobkit::{S3Config, S3Store};
 
 // ---------------------------------------------------------------------------
@@ -102,6 +105,7 @@ fn blob_id_uuid_roundtrip_and_parse_errors() {
     assert!(err.is_invalid_key(), "garbage id must be invalid: {err}");
 }
 
+#[cfg(feature = "sha2")]
 #[test]
 fn blob_metadata_builders_chain() {
     let key = ObjectKey::new("video/clip.mp4").unwrap();
@@ -241,6 +245,7 @@ async fn local_put_rejects_dotdot_containing_keys() {
     );
 }
 
+#[cfg(feature = "s3")]
 #[tokio::test]
 async fn local_presigned_url_is_file_url_with_expiry() {
     let dir = tempfile::tempdir().unwrap();

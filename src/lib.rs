@@ -47,6 +47,7 @@
 //! | [`local::LocalStore`] | `std` | Yes | Single-node | Atomic writes |
 //! | [`io_uring_backend::store::IoUringStore`] | `io-uring` | Yes | Single-node (Linux) | io_uring bulk path, atomic writes |
 //! | [`s3::S3Store`] | `s3` | Yes | Distributed | aws-sdk-s3, path-style + custom endpoints |
+//! | [`object_store_backend::ObjectStoreBackend`] | `object-store` | Yes | Distributed | GCS + Azure via the `object_store` facade |
 //!
 //! ## Features
 //!
@@ -55,6 +56,11 @@
 //! - `s3`: enable the real S3 backend (`aws-sdk-s3` + `aws-config`) with
 //!   pre-signed URLs, path-style addressing, custom endpoints, and static
 //!   or chain-based credentials.
+//! - `object-store`: enable GCS + Azure backends as a facade over the
+//!   [`object_store`] crate (not compiled for wasm32 targets). Adds
+//!   [`object_store_backend::ObjectStoreBackend`] plus GCS/Azure configs;
+//!   signing (GCS signed URLs / Azure Service SAS) is generated locally
+//!   from service-account / account-key credentials.
 //! - `io-uring` (Linux only): enable [`io_uring_backend`] — a `LocalStore`
 //!   variant whose bulk `pread`/`pwrite` path uses raw io_uring SQEs. The
 //!   blocking submit-wait sections run inside `spawn_blocking`; the raw
@@ -78,6 +84,9 @@ pub mod types;
 #[allow(unsafe_code)]
 pub mod io_uring_backend;
 
+#[cfg(all(feature = "object-store", not(target_arch = "wasm32")))]
+pub mod object_store_backend;
+
 // Re-exports for ergonomic imports.
 pub use error::{BlobError, Result};
 pub use store::BlobStore;
@@ -88,3 +97,8 @@ pub use s3::{S3Config, S3Store};
 
 #[cfg(all(feature = "io-uring", target_os = "linux"))]
 pub use io_uring_backend::store::{IoUringFile, IoUringStore};
+
+#[cfg(all(feature = "object-store", not(target_arch = "wasm32")))]
+pub use object_store_backend::{
+    AzureConfig, AzureCredentials, GcsConfig, GcsCredentials, ObjectStoreBackend,
+};
