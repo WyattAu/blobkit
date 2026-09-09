@@ -371,7 +371,7 @@ impl ObjectStoreBackend {
     }
 
     fn key_path(key: &ObjectKey) -> Result<Path> {
-        Path::parse(key.as_str()).map_err(|e| BlobError::invalid_key(e))
+        Path::parse(key.as_str()).map_err(BlobError::invalid_key)
     }
 
     #[cfg(feature = "s3")]
@@ -579,7 +579,6 @@ mod tests {
         assert!(matches!(err, BlobError::Other(_)), "{err:?}");
     }
 
-    #[test]
     #[test]
     fn azure_build_rejects_bad_connection_env() {
         // Empty explicit account/key must be rejected by our own validation.
