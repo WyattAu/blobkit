@@ -1,5 +1,9 @@
 # blobkit
 
+[![docs.rs](https://docs.rs/blobkit/badge.svg)](https://docs.rs/blobkit)
+[![crates.io](https://img.shields.io/crates/v/blobkit.svg)](https://crates.io/crates/blobkit)
+[![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE)
+
 Unified blob storage — trait + Memory + Local + S3.
 
 Replaces `S3Client::from_conf` duplication across `archival-shim`, `backup-shim`, `kestrel-storage`, and `ferro`.
@@ -59,9 +63,30 @@ let store = S3Store::new(cfg).await?;
 
 ## Features
 
-- `std` (default), `memory`, `s3`, `typed-id`, `sha2`, `chrono`, `serde`, `tracing`
-- `io-uring` (Linux only): `IoUringStore` — `LocalStore` variant using raw
-  io_uring SQEs for the bulk data path; see [PERF-SLO.md](PERF-SLO.md).
+| Feature | Default | Description |
+|---|---|---|
+| `std` | ✅ | `LocalStore` filesystem backend. |
+| `memory` | ✅ | `MemoryStore` in-memory backend. |
+| `s3` | — | `S3Store` via `aws-sdk-s3` (also MinIO/LocalStack/R2 via custom endpoints). |
+| `serde` | — | `Serialize`/`Deserialize` for key types. |
+| `chrono` | — | `created_at` timestamps on metadata. |
+| `typed-id` | — | UUID-backed `BlobId`. |
+| `sha2` | — | Content checksums on metadata. |
+| `mime_guess` | — | Content-type detection from object keys. |
+| `tracing` | — | `trace`/`debug` spans for store operations. |
+| `io-uring` | — | (Linux) `IoUringStore` — `LocalStore` variant using raw io_uring SQEs for the bulk data path; see [PERF-SLO.md](PERF-SLO.md). |
+| `object-store` | — | Additional backends via the `object_store` crate (GCP, Azure). |
+
+## Performance
+
+Measured io_uring bulk-data path (criterion, 2026-09, 6-core x86_64 NVMe; sequential 1 MiB, no fsync in timed section):
+
+| Operation | `tokio::fs` | `IoUringFile` | Speedup |
+|---|---|---|---|
+| write 1 MiB | 1.74 ms | 1.22 ms | ~1.43× |
+| read 1 MiB | 2.56 ms | 1.63 ms | ~1.57× |
+
+End-to-end `BlobStore`: `IoUringStore::put` 1 MiB ≈ 2.50 ms, `get` ≈ 1.33 ms (includes the full atomic-write/durability contract). Full SLO policy and honest caveats: [PERF-SLO.md](PERF-SLO.md).
 
 ## Security
 

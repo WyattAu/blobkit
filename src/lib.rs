@@ -1,4 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, allow(unused_attributes))]
 // `forbid(unsafe_code)` crate-wide, with one exception: the `io-uring`
 // backend shares ring memory with the kernel and needs `unsafe` blocks
 // (each annotated with its invariant — see `io_uring_backend`). `forbid`
@@ -81,10 +83,18 @@ pub mod store;
 pub mod types;
 
 #[cfg(all(feature = "io-uring", target_os = "linux"))]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "io-uring", target_os = "linux")))
+)]
 #[allow(unsafe_code)]
 pub mod io_uring_backend;
 
 #[cfg(all(feature = "object-store", not(target_arch = "wasm32")))]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "object-store", not(target_arch = "wasm32"))))
+)]
 pub mod object_store_backend;
 
 // Re-exports for ergonomic imports.
@@ -93,9 +103,14 @@ pub use store::BlobStore;
 pub use types::{BlobId, BlobMetadata, BucketName, ObjectKey};
 
 #[cfg(feature = "s3")]
+#[cfg_attr(docsrs, doc(cfg(feature = "s3")))]
 pub use s3::{S3Config, S3Store};
 
 #[cfg(all(feature = "io-uring", target_os = "linux"))]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "io-uring", target_os = "linux")))
+)]
 pub use io_uring_backend::store::{IoUringFile, IoUringStore};
 
 #[cfg(all(feature = "object-store", not(target_arch = "wasm32")))]
