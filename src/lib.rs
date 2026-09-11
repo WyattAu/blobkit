@@ -83,10 +83,7 @@ pub mod store;
 pub mod types;
 
 #[cfg(all(feature = "io-uring", target_os = "linux"))]
-#[cfg_attr(
-    docsrs,
-    doc(cfg(all(feature = "io-uring", target_os = "linux")))
-)]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "io-uring", target_os = "linux"))))]
 #[allow(unsafe_code)]
 pub mod io_uring_backend;
 
@@ -107,10 +104,7 @@ pub use types::{BlobId, BlobMetadata, BucketName, ObjectKey};
 pub use s3::{S3Config, S3Store};
 
 #[cfg(all(feature = "io-uring", target_os = "linux"))]
-#[cfg_attr(
-    docsrs,
-    doc(cfg(all(feature = "io-uring", target_os = "linux")))
-)]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "io-uring", target_os = "linux"))))]
 pub use io_uring_backend::store::{IoUringFile, IoUringStore};
 
 #[cfg(all(feature = "object-store", not(target_arch = "wasm32")))]

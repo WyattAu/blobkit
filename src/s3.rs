@@ -447,7 +447,7 @@ impl BlobStore for S3Store {
     clippy::indexing_slicing,
     clippy::panic
 )]
-#[cfg(test)]
+#[cfg(all(test, feature = "s3"))]
 mod tests {
     use super::*;
 
@@ -565,7 +565,7 @@ mod tests {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "s3"))]
 #[allow(clippy::unwrap_used, clippy::expect_used)]
 mod redaction_tests {
     use super::*;

@@ -1,4 +1,5 @@
 // Tests exercise failure paths directly; unwrap/expect, slicing, and
+#![cfg(feature = "std")]
 // panicking asserts are the test signal here.
 #![allow(
     clippy::unwrap_used,

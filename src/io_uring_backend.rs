@@ -10,10 +10,10 @@
 //!
 //! # What is here
 //!
-//! - [`IoUringFile`]: a minimal correct file backend using raw io_uring
+//! - [`backend::IoUringFile`]: a minimal correct file backend using raw io_uring
 //!   SQEs: chunked, batched `Write`/`Read` operations with a
 //!   submit → wait → reap → resubmit loop that handles short reads/writes.
-//! - [`IoUringStore`]: a [`BlobStore`](crate::store::BlobStore) over
+//! - [`store::IoUringStore`]: a [`crate::store::BlobStore`] over
 //!   `IoUringFile` scoped to `put`/`get` on local files, with the same
 //!   atomic-write semantics as [`LocalStore`](crate::local::LocalStore)
 //!   (tempfile + fsync + rename).
@@ -24,7 +24,7 @@
 //!   (`submit_and_wait`) block the calling thread. The [`store::IoUringStore`]
 //!   methods therefore run the ring sections inside
 //!   `tokio::task::spawn_blocking`, so `BlobStore` callers never block the
-//!   async runtime. The raw [`IoUringFile`] API remains synchronous by
+//!   async runtime. The raw [`backend::IoUringFile`] API remains synchronous by
 //!   design: it is intended for dedicated I/O threads. A fully async
 //!   integration needs registered buffers, submission coalescing across
 //!   tasks, and a completion dispatcher — deliberately out of scope for
@@ -326,7 +326,7 @@ pub mod backend {
 
 #[cfg(all(target_os = "linux", feature = "io-uring"))]
 pub mod store {
-    //! [`BlobStore`](crate::store::BlobStore) integration: an
+    //! [`BlobStore`] integration: an
     //! io_uring-backed filesystem store with `LocalStore`-equivalent
     //! atomicity, plus roundtrip/parity tests.
     //!

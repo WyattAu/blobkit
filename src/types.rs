@@ -479,7 +479,7 @@ pub fn compute_sha256(_data: &[u8]) -> Option<String> {
     clippy::indexing_slicing,
     clippy::panic
 )]
-#[cfg(test)]
+#[cfg(all(test, feature = "std"))]
 mod tests {
     use super::*;
 

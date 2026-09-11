@@ -38,11 +38,13 @@ use tracing::{debug, trace};
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), blobkit::error::BlobError> {
+/// # #[cfg(feature = "std")] {
 /// let store = MemoryStore::new();
 /// let key = ObjectKey::new("hello.txt")?;
 /// store.put(key.clone(), Bytes::from("hello")).await?;
 /// let data = store.get(&key).await?;
 /// assert_eq!(data, Bytes::from("hello"));
+/// # }
 /// # Ok(())
 /// # }
 /// ```
@@ -371,7 +373,7 @@ impl BlobStore for MemoryStore {
     clippy::indexing_slicing,
     clippy::panic
 )]
-#[cfg(test)]
+#[cfg(all(test, feature = "memory"))]
 mod tests {
     use super::*;
     use crate::store::BlobStore;
