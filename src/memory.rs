@@ -181,14 +181,16 @@ impl BlobStore for MemoryStore {
             let content_type = crate::types::guess_content_type(&key);
             #[cfg(feature = "sha2")]
             let meta = {
-                let mut m =
-                    BlobMetadata::new(key.clone(), size).with_content_type(content_type.clone());
+                // Move `content_type` straight into the constructor: cloning
+                // it (or building via `new` + `with_content_type`) wastes an
+                // allocation per put (see `zero_alloc_small_object` gate).
+                let mut m = BlobMetadata::new_with_content_type(key.clone(), size, content_type);
                 let digest = crate::types::compute_sha256(&data);
                 m.sha256 = Some(digest);
                 m
             };
             #[cfg(not(feature = "sha2"))]
-            let meta = BlobMetadata::new(key.clone(), size).with_content_type(content_type);
+            let meta = BlobMetadata::new_with_content_type(key.clone(), size, content_type);
 
             let id = BlobId::new();
             let entry = Entry { data, meta };

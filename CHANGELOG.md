@@ -6,6 +6,28 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-09-12
+
+### Added
+
+- `tests/config_matrix.rs` — per-knob behavior matrix completing the
+  partial coverage (10 knobs): feature-off `mime_guess`/`sha2` fallbacks,
+  offline S3 presigned-URL shape (endpoint/path-style/bucket), timeout
+  and credentials contrasts, quota and key/boundary edges. No dead
+  knobs found.
+- `BlobMetadata::new_with_content_type` constructor (avoids allocating
+  the default content-type string only to overwrite it).
+
+### Fixed
+
+- Warm-key overwrite `put` allocated 7/op vs the documented ≤ 5/op gate
+  (throwaway default content-type string + redundant clone): removed 2
+  waste allocations per put via the new constructor + a move.
+- `tests/zero_alloc_small_object.rs`: serialized the two tests sharing
+  the process-global counter, median/best-of assertions immune to
+  harness-thread noise, `std`-gated the `MemoryStore`-dependent profile
+  (pre-existing failures on clean tree, both feature configs).
+
 ## [0.4.1] - 2026-09-12
 
 ### Added

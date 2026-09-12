@@ -407,6 +407,26 @@ impl BlobMetadata {
     }
 
     /// Create metadata with an explicit content type.
+    ///
+    /// Prefer this over [`Self::new`] + [`Self::with_content_type`] when the
+    /// content type is already known: it avoids allocating the default
+    /// `"application/octet-stream"` string only to overwrite it (see the
+    /// `zero_alloc_small_object` gate).
+    #[must_use]
+    pub fn new_with_content_type(key: ObjectKey, size: u64, content_type: String) -> Self {
+        Self {
+            key,
+            size,
+            content_type,
+            #[cfg(feature = "chrono")]
+            created_at: Utc::now(),
+            #[cfg(not(feature = "chrono"))]
+            created_at: None,
+            sha256: None,
+        }
+    }
+
+    /// Create metadata with an explicit content type.
     #[must_use]
     pub fn with_content_type(mut self, ct: impl Into<String>) -> Self {
         self.content_type = ct.into();

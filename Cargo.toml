@@ -1,6 +1,6 @@
 [package]
 name = "blobkit"
-version = "0.4.1"
+version = "0.4.2"
 edition = "2021"
 rust-version = "1.85"
 description = "Unified blob storage — trait + Memory + Local + S3 (aws-sdk-s3). Replaces S3Client::from_conf duplication."
