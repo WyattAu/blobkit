@@ -203,7 +203,10 @@ impl S3Config {
 }
 
 /// Map a service error to a [`BlobError`] from its HTTP status and error code.
-#[cfg(any(feature = "s3", test))]
+// Used by the s3 feature paths and by this file's own unit tests; gating on
+// `test` alone (without the feature) leaves it dead under
+// `cargo clippy --no-default-features --all-targets`.
+#[cfg(any(feature = "s3", all(test, feature = "s3")))]
 fn map_service_error(status: Option<u16>, code: Option<&str>, display: String) -> BlobError {
     let not_found = status == Some(404)
         || matches!(

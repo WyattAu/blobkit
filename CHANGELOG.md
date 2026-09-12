@@ -6,6 +6,31 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-09-12
+
+### Added
+
+- **Claims proof-back** ([CLAIMS.md](CLAIMS.md)): every numeric performance
+  claim in README/PERF-SLO mapped to its proof artifact.
+- `benches/iai_hot_path.rs` — iai-callgrind instruction gate for the
+  small-object fast path: `ObjectKey` validation = 490 instructions,
+  `MemoryStore` overwrite-put = 2 747, warm get = 1 837 (CI-gated; needs
+  valgrind to run locally).
+- `tests/zero_alloc_small_object.rs` — counting-allocator gate pinning the
+  small-object allocation profile: warm-key get = exactly 1/op (the
+  `#[async_trait]` boxed future — the `Bytes` payload itself is a
+  refcount bump); overwrite put bounded ≤ 5/op. Migrating `BlobStore` to
+  native async-fn-in-trait (dropping the box, at the cost of
+  dyn-compatibility) is documented as future work.
+
+### Fixed
+
+- `BlobId` hex parsing in the non-`typed-id` build no longer indexes
+  (`clippy::indexing_slicing` failed `--no-default-features` clippy on
+  main); `s3::map_service_error` and `benches/blob_bench` are now
+  feature-gated so `cargo clippy --no-default-features --all-targets
+  -- -D warnings` passes.
+
 ## [0.3.0] - 2026-09-06
 
 ### Added

@@ -1,5 +1,8 @@
 # Performance SLOs & Benchmarks
 
+Every numeric claim in this file and the README is inventoried against its
+proof artifact in [CLAIMS.md](CLAIMS.md).
+
 Numbers from `benches/io_uring_bench.rs` (criterion, release profile). Re-run
 with:
 

@@ -1,6 +1,6 @@
 [package]
 name = "blobkit"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
 rust-version = "1.85"
 description = "Unified blob storage — trait + Memory + Local + S3 (aws-sdk-s3). Replaces S3Client::from_conf duplication."
@@ -45,6 +45,10 @@ tempfile = "3"
 proptest = "1"
 tokio = { version = "1", features = ["full"] }
 criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
+# `Bytes::from_static` in the small-object path tests/benches.
+bytes = "1"
+# Deterministic CI perf gate (instruction counts; needs valgrind to run).
+iai-callgrind = "0.16"
 
 [features]
 default = ["std", "memory"]
@@ -63,11 +67,18 @@ object-store = ["std", "dep:object_store", "dep:futures", "dep:http"]
 [[bench]]
 name = "blob_bench"
 harness = false
+required-features = ["std"]
 
 [[bench]]
 name = "io_uring_bench"
 harness = false
 required-features = ["io-uring"]
+
+# Deterministic CI perf gate (instruction counts under valgrind). Not run
+# locally unless valgrind is installed; see benches/iai_hot_path.rs.
+[[bench]]
+name = "iai_hot_path"
+harness = false
 
 [lints.clippy]
 unwrap_used = "deny"

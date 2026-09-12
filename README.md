@@ -82,11 +82,13 @@ let store = S3Store::new(cfg).await?;
 Measured io_uring bulk-data path (criterion, 2026-09, 6-core x86_64 NVMe; sequential 1 MiB, no fsync in timed section):
 
 | Operation | `tokio::fs` | `IoUringFile` | Speedup |
-|---|---|---|---|
+|-----------|------------:|--------------:|-----------------:|
 | write 1 MiB | 1.74 ms | 1.22 ms | ~1.43× |
 | read 1 MiB | 2.56 ms | 1.63 ms | ~1.57× |
 
 End-to-end `BlobStore`: `IoUringStore::put` 1 MiB ≈ 2.50 ms, `get` ≈ 1.33 ms (includes the full atomic-write/durability contract). Full SLO policy and honest caveats: [PERF-SLO.md](PERF-SLO.md).
+
+Every numeric claim is mapped to its proof artifact in [CLAIMS.md](CLAIMS.md), which also pins the small-object fast path: `ObjectKey` validation = 490 instructions, warm `MemoryStore` get = 1 837 (iai-callgrind gate, `benches/iai_hot_path.rs`), and the allocation profile (get = exactly 1/op — the `#[async_trait]` future box; the `Bytes` payload is a refcount bump) proven by `tests/zero_alloc_small_object.rs`.
 
 ## Security
 

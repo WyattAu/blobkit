@@ -346,9 +346,13 @@ impl FromStr for BlobId {
                 ));
             }
             let mut bytes = [0u8; 16];
-            for i in 0..16 {
-                let hex = &s[i * 2..i * 2 + 2];
-                bytes[i] = u8::from_str_radix(hex, 16)
+            // `s.len() == 32` is checked above, so `chunks_exact(2)` yields
+            // exactly 16 chunks; zipping slots with chunks keeps every
+            // access in range by construction (clippy::indexing_slicing).
+            for (slot, chunk) in bytes.iter_mut().zip(s.as_bytes().chunks_exact(2)) {
+                let hex = core::str::from_utf8(chunk)
+                    .map_err(|_| crate::error::BlobError::invalid_key("invalid hex in BlobId"))?;
+                *slot = u8::from_str_radix(hex, 16)
                     .map_err(|_| crate::error::BlobError::invalid_key("invalid hex in BlobId"))?;
             }
             Ok(Self(bytes))
