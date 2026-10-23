@@ -1,4 +1,5 @@
 # blobkit
+[![Estate integration](https://github.com/WyattAu/estate-integration/actions/workflows/ci.yml/badge.svg)](https://github.com/WyattAu/estate-integration/actions/workflows/ci.yml)
 
 [![docs.rs](https://docs.rs/blobkit/badge.svg)](https://docs.rs/blobkit)
 [![crates.io](https://img.shields.io/crates/v/blobkit.svg)](https://crates.io/crates/blobkit)
