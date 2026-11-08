@@ -1,0 +1,16 @@
+# blobkit
+
+> Unified blob storage for Rust: one Store trait with Memory, Local, and S3
+> backends, replacing per-service S3 client construction duplicated across
+> estate services.
+
+## Docs
+
+- [README.md](README.md): store trait semantics, backend selection, quick start.
+- [REQUIREMENTS.md](REQUIREMENTS.md): numbered requirements REQ-BK-001..202 with test traceability.
+- [THREAT-MODEL.md](THREAT-MODEL.md): threat model and security mitigations.
+- [PERF-SLO.md](PERF-SLO.md): performance SLOs and benchmark results.
+- [CLAIMS.md](CLAIMS.md): performance claims inventory.
+- [COVERAGE-NOTES.md](COVERAGE-NOTES.md): coverage notes and exclusions.
+- [SECURITY.md](SECURITY.md): security policy.
+- [CHANGELOG.md](CHANGELOG.md): release history.

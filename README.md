@@ -94,3 +94,16 @@ Every numeric claim is mapped to its proof artifact in [CLAIMS.md](CLAIMS.md), w
 ## Security
 
 Threat model: [THREAT-MODEL.md](THREAT-MODEL.md).
+
+## Where the truth lives
+
+| Concern | File |
+|---|---|
+| Store trait semantics, backends, usage (normative) | `README.md` |
+| Requirements REQ-BK-001..202 + traceability | `REQUIREMENTS.md` |
+| Threat model | `THREAT-MODEL.md` |
+| Performance SLOs and benchmarks | `PERF-SLO.md` |
+| Performance claims inventory | `CLAIMS.md` |
+| Coverage notes | `COVERAGE-NOTES.md` |
+| Security policy | `SECURITY.md` |
+| Release history | `CHANGELOG.md` |
